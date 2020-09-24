@@ -22,28 +22,28 @@
     <li class="nav-item">
       <a class="nav-link" style="color: rosybrown; font-size: 2rem; font-family: 'Jua', sans-serif;" href="{% url 'food:randreci' %}">My chef</a>
     </li>
-    <li class="nav-item">
-      <a class="nav-link" style="color: rosybrown; font-size: 2rem; font-family: 'Jua', sans-serif;" href="{% url 'food:recoreci' %}">요리추천</a>
-    </li>
     {% if not user.is_authenticated %}
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
-          aria-haspopup="true" aria-expanded="false" style="color: rosybrown; font-size: 2rem; font-family: 'Jua', sans-serif;">
-          비회원
-        </a>
-        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-          <a class="dropdown-item" href="{% url 'accounts:signup' %}">회원가입</a>
-          <a class="dropdown-item" href="{% url 'accounts:login' %}">로그인</a>
-        </div>
-      </li>
-    {% endif %}
-    {% if user.is_authenticated %}
-        <li class="nav-item dropdown" >
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
-            aria-haspopup="true" aria-expanded="false" style="color: rosybrown; font-size: 2rem; font-family: 'Jua', sans-serif;">
-            {{user.username}} 
-          </a>
-          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
+      aria-haspopup="true" aria-expanded="false" style="color: rosybrown; font-size: 2rem; font-family: 'Jua', sans-serif;">
+      비회원
+    </a>
+    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+      <a class="dropdown-item" href="{% url 'accounts:signup' %}">회원가입</a>
+      <a class="dropdown-item" href="{% url 'accounts:login' %}">로그인</a>
+    </div>
+  </li>
+  {% endif %}
+  {% if user.is_authenticated %}
+  <li class="nav-item">
+    <a class="nav-link" style="color: rosybrown; font-size: 2rem; font-family: 'Jua', sans-serif;" href="{% url 'food:recoreci' %}">요리추천</a>
+  </li>
+  <li class="nav-item dropdown" >
+    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
+    aria-haspopup="true" aria-expanded="false" style="color: rosybrown; font-size: 2rem; font-family: 'Jua', sans-serif;">
+    {{user.username}} 
+  </a>
+  <div class="dropdown-menu" aria-labelledby="navbarDropdown">
             <a class="dropdown-item" href="{% url 'accounts:user_page' user.id %}">내 정보</a>
             <a class="dropdown-item" href="{% url 'posts:create' %}">소통하기</a>
             <a class="dropdown-item" href="{% url 'posts:index' %}">둘러보기</a>

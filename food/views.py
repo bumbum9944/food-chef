@@ -1,9 +1,95 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from .models import Food
+import cv2
 import numpy as np
-
+from django.http import JsonResponse
+from PIL import Image
+import tensorflow.keras
+import pandas as pd
 
 # Create your views here.
+def test(request):
+    print("===========================")
+    if request.method == 'POST':
+
+        data = pd.read_csv('labels.txt', sep = " ", header=None)
+        labels = list(data[1])
+        ingrd_labels = []
+
+        aa = request.FILES['uploadFile']
+        img = Image.open(aa)
+        img.save('test.jpg')
+        # img.save("test.jpg")
+        image = cv2.imread('test.jpg')
+        image = cv2.resize(image, (1000, 680))
+        image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        blur = cv2.GaussianBlur(image_gray, ksize=(1,1), sigmaX=0)
+        ret, thresh1 = cv2.threshold(blur, 127, 255, cv2.THRESH_BINARY)
+        
+        edged = cv2.Canny(blur, 10, 250)
+
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (7,7))
+        closed = cv2.morphologyEx(edged, cv2.MORPH_CLOSE, kernel)
+
+        contours, _ = cv2.findContours(closed.copy(),cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        total = 0
+
+        contours_xy = np.array(contours)
+        contours_xy.shape
+
+        model = tensorflow.keras.models.load_model('keras_model.h5')
+
+        for i in range(len(contours_xy)):
+            x_min, x_max = 0,0
+            y_min, y_max = 0,0
+            value_x = list()
+            value_y = list()
+            for j in range(len(contours_xy[i])):
+                value_x.append(contours_xy[i][j][0][0]) 
+                value_y.append(contours_xy[i][j][0][1])
+            x_min = min(value_x)
+            x_max = max(value_x)
+
+            y_min = min(value_y)
+            y_max = max(value_y)
+
+            x = x_min
+            y = y_min
+            w = x_max-x_min
+            h = y_max-y_min
+            
+            if w * h < 6500:
+                continue
+            
+            img_trim = image[y:y+h, x:x+w]
+            cv2.imwrite('org_trim.jpg', img_trim)
+            org_image = cv2.imread('org_trim.jpg')
+            
+            data = np.ndarray(shape=(1, 224, 224, 3), dtype=np.float32)
+            orf_image = cv2.resize(org_image, dsize=(224, 224), interpolation=cv2.INTER_AREA)
+            
+        
+            
+            image_array = np.asarray(orf_image)
+
+            normalized_image_array = (image_array.astype(np.float32) / 127.0) - 1
+
+            data[0] = normalized_image_array
+
+            prediction = model.predict(data)
+            ingrd_labels.append(labels[np.argmax(prediction)])
+
+        ingrd_labels = list(set(ingrd_labels))
+
+        context = {
+            'labels' : ingrd_labels
+        }
+        
+        return JsonResponse(context)
+    return redirect('food:recoreci')
+
+
+
 def randreci(request):
 
     Foods = Food.objects.all()
@@ -91,6 +177,8 @@ def randreci(request):
 
 
 def recoreci(request):
-    
-    return render(request, 'food/recoreci.html')
-
+    food = Food.objects.all()
+    foods = []
+    for f in food:
+        foods.append({'name':f.name,'reci':f.reci,'a':f.cookingOrder,'img':f.image})
+    return render(request, 'food/recoreci.html', {'food':foods})
